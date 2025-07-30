@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mombasa Coastal Concierge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .chat-container {
+            width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .chat-header h1 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bot-message {
+            background: #e3f2fd;
+            color: #1565c0;
+            margin-right: auto;
+        }
+        
+        .user-message {
+            background: #4ECDC4;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .option-btn {
+            background: white;
+            border: 2px solid #4ECDC4;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .option-btn:hover {
+            background: #4ECDC4;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+        
+        .chat-input input:focus {
+            border-color: #4ECDC4;
+        }
+        
+        .send-btn {
+            background: #4ECDC4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin-left: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .send-btn:hover {
+            background: #45b7aa;
+        }
+        
+        .typing {
+            display: none;
+            padding: 10px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🏖️ Mombasa Coastal Concierge</h1>
+            <p>Your AI Tourism Assistant</p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                <div>Habari! 👋 Welcome to Mombasa Coastal Concierge!</div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="selectOption('beaches')">🏖️ Beaches & Tours</div>
+                    <div class="option-btn" onclick="selectOption('food')">🍴 Food & Restaurants</div>
+                    <div class="option-btn" onclick="selectOption('events')">🎉 Events & Culture</div>
+                    <div class="option-btn" onclick="selectOption('vendors')">🛍️ Vendors & Crafts</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="typing" id="typing">AI is typing...</div>
+        
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Tourism data for Mombasa
+        const tourismData = {
+            beaches: [
+                {
+                    name: "Diani Beach",
+                    detail: "25km south of Mombasa, pristine white sand",
+                    tip: "Best visited early morning for stunning sunrise photos",
+                    accommodation: ["Diani Reef Beach Resort", "Baobab Beach Resort"]
+                },
+                {
+                    name: "Nyali Beach",
+                    detail: "15 minutes from city center, great for families",
+                    tip: "Perfect for camel rides and water sports",
+                    accommodation: ["Voyager Beach Resort", "Nyali Beach Hotel"]
+                }
+            ],
+            food: [
+                {
+                    name: "Tamarind Restaurant",
+                    detail: "Floating restaurant in Tudor Creek",
+                    tip: "Try the seafood platter with ocean views",
+                    location: "Nyali Bridge area"
+                },
+                {
+                    name: "Jahazi Coffee House",
+                    detail: "Local Swahili cuisine in Old Town",
+                    tip: "Don't miss the coconut curry and fresh samosas",
+                    location: "Fort Jesus vicinity"
+                }
+            ],
+            events: [
+                {
+                    name: "Mombasa Carnival",
+                    detail: "Annual cultural festival (November)",
+                    tip: "Book accommodation early - gets very busy",
+                    when: "November annually"
+                },
+                {
+                    name: "Fort Jesus Museum",
+                    detail: "16th century Portuguese fort, UNESCO site",
+                    tip: "Visit during sunset for amazing photography",
+                    hours: "Daily 8AM-6PM"
+                }
+            ],
+            vendors: [
+                {
+                    name: "Bombolulu Workshops",
+                    detail: "Authentic Kenyan crafts by disabled artisans",
+                    tip: "Great for supporting local community",
+                    specialty: "Wood carvings, jewelry, textiles"
+                },
+                {
+                    name: "Akamba Handicrafts",
+                    detail: "Traditional wood carvings near city center",
+                    tip: "Negotiate prices, but be respectful",
+                    specialty: "Makonde sculptures, soapstone"
+                }
+            ]
+        };
+
+        function addMessage(message, isUser = false) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.innerHTML = message;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTyping() {
+            document.getElementById('typing').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('typing').style.display = 'none';
+            }, 1500);
+        }
+
+        function selectOption(category) {
+            addMessage(getResponse(category), false);
+            
+            // Add accommodation suggestions if beaches selected
+            if (category === 'beaches') {
+                setTimeout(() => {
+                    addMessage("Would you also like accommodation recommendations near these beaches? 🏨", false);
+                }, 1000);
+            }
+        }
+
+        function getResponse(input) {
+            const category = input.toLowerCase();
+            
+            if (category.includes('beach') || category === 'beaches') {
+                const beaches = tourismData.beaches;
+                return `🏖️ <strong>Top Beach Recommendations:</strong><br><br>
+                        <strong>${beaches[0].name}:</strong> ${beaches[0].detail}<br>
+                        💡 <em>${beaches[0].tip}</em><br><br>
+                        <strong>${beaches[1].name}:</strong> ${beaches[1].detail}<br>
+                        💡 <em>${beaches[1].tip}</em><br><br>
+                        Would you like directions or accommodation options? 🗺️`;
+            }
+            
+            if (category.includes('food') || category === 'food') {
+                const restaurants = tourismData.food;
+                return `🍴 <strong>Must-Try Restaurants:</strong><br><br>
+                        <strong>${restaurants[0].name}:</strong> ${restaurants[0].detail}<br>
+                        💡 <em>${restaurants[0].tip}</em><br><br>
+                        <strong>${restaurants[1].name}:</strong> ${restaurants[1].detail}<br>
+                        💡 <em>${restaurants[1].tip}</em><br><br>
+                        Need reservations help or more dining options? 📞`;
+            }
+            
+            if (category.includes('event') || category === 'events') {
+                const events = tourismData.events;
+                return `🎉 <strong>Cultural Highlights:</strong><br><br>
+                        <strong>${events[0].name}:</strong> ${events[0].detail}<br>
+                        💡 <em>${events[0].tip}</em><br><br>
+                        <strong>${events[1].name}:</strong> ${events[1].detail}<br>
+                        💡 <em>${events[1].tip}</em><br><br>
+                        Want tickets or more current events? 🎫`;
+            }
+            
+            if (category.includes('vendor') || category === 'vendors') {
+                const vendors = tourismData.vendors;
+                return `🛍️ <strong>Authentic Local Shopping:</strong><br><br>
+                        <strong>${vendors[0].name}:</strong> ${vendors[0].detail}<br>
+                        💡 <em>${vendors[0].tip}</em><br><br>
+                        <strong>${vendors[1].name}:</strong> ${vendors[1].detail}<br>
+                        💡 <em>${vendors[1].tip}</em><br><br>
+                        Need directions or shipping assistance? 📦`;
+            }
+            
+            // Handle accommodation requests
+            if (category.includes('accommodation') || category.includes('hotel')) {
+                return `🏨 <strong>Recommended Stays:</strong><br><br>
+                        <strong>Near Diani:</strong> Diani Reef Beach Resort, Baobab Beach Resort<br>
+                        <strong>Near Nyali:</strong> Voyager Beach Resort, Nyali Beach Hotel<br><br>
+                        Would you like booking links or price comparisons? 💰`;
+            }
+            
+            return `I'd love to help! Please choose from:<br><br>
+                    🏖️ Beaches & Ocean Tours<br>
+                    🍴 Food & Local Restaurants<br>
+                    🎉 Events & Cultural Activities<br>
+                    🛍️ Vendors & Crafts<br><br>
+                    What interests you most today? 😊`;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage(message, true);
+                input.value = '';
+                
+                showTyping();
+                
+                setTimeout(() => {
+                    const response = getResponse(message);
+                    addMessage(response, false);
+                }, 1500);
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Auto-focus input
+        document.getElementById('messageInput').focus();
+    </script>
+</body>
+</html>
